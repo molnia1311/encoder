@@ -1,0 +1,39 @@
+name: Build and Push to GitHub Container Registry
+
+on:
+  workflow_dispatch: # Allows manual triggering
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write # Grants permission to publish to GitHub Packages
+      contents: read # Grants permission to clone private repo
+
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 3: Log in to GitHub Container Registry
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Step 4: Build the Docker image
+      - name: Build Docker Image
+        run: docker build -t ghcr.io/molnia1311/encoder:latest .
+
+      # Step 5: Push the Docker image to GitHub Container Registry
+      - name: Push Docker Image
+        run: docker push ghcr.io/molnia1311/encoder:latest
